@@ -1,0 +1,14 @@
+services:
+  engine:
+    build:
+      context: ./engine
+      dockerfile: Dockerfile.dev
+    image: conduit-engine-dev
+    working_dir: /workspace
+    volumes:
+      - ./engine:/workspace
+      - engine-build:/build
+    command: bash
+
+volumes:
+  engine-build:

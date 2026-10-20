@@ -7,9 +7,4 @@ RUN apt-get update \
 
 WORKDIR /workspace
 
-COPY . .
-
-RUN cmake -S . -B build \
-    && cmake --build build
-
-CMD ["./build/conduit_smoke_test"]
+CMD ["bash"]
