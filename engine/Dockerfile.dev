@@ -1,0 +1,15 @@
+FROM gcc:15
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+       cmake \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /workspace
+
+COPY . .
+
+RUN cmake -S . -B build \
+    && cmake --build build
+
+CMD ["./build/conduit_smoke_test"]
