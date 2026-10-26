@@ -18,6 +18,10 @@ target_compile_options(conduit_engine PRIVATE -Wall -Wextra)
 # Phase 0 smoke test, kept for now.
 add_executable(conduit_smoke_test src/main.cpp)
 
+add_executable(route_cli src/route_cli.cpp)
+target_link_libraries(route_cli PRIVATE conduit_engine)
+target_compile_options(route_cli PRIVATE -Wall -Wextra)
+
 # Tests
 enable_testing()
 include(FetchContent)
@@ -32,8 +36,12 @@ FetchContent_MakeAvailable(googletest)
 set(CONDUIT_SAMPLES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../data/samples"
     CACHE PATH "Folder holding small test graphs")
 
-add_executable(conduit_tests tests/test_graph.cpp tests/test_router.cpp tests/test_geo.cpp tests/test_astar.cpp tests/test_spatial_index.cpp)
+set(CONDUIT_PROCESSED_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../data/processed"
+    CACHE PATH "Folder holding exported city graphs")
+
+add_executable(conduit_tests tests/test_graph.cpp tests/test_router.cpp tests/test_geo.cpp tests/test_astar.cpp tests/test_spatial_index.cpp tests/test_real_graph.cpp)
 target_link_libraries(conduit_tests PRIVATE conduit_engine GTest::gtest_main)
 target_compile_options(conduit_tests PRIVATE -Wall -Wextra)
 target_compile_definitions(conduit_tests PRIVATE
-    CONDUIT_SAMPLES_DIR="${CONDUIT_SAMPLES_DIR}")
+    CONDUIT_SAMPLES_DIR="${CONDUIT_SAMPLES_DIR}"
+    CONDUIT_PROCESSED_DIR="${CONDUIT_PROCESSED_DIR}")
