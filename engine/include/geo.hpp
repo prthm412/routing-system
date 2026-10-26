@@ -18,7 +18,7 @@ namespace conduit {
 
         const double sinHalfPhi = std::sin(dPhi / 2.0);
         const double sinHalfLambda = std::sin(dLambda / 2.0);
-        const double a = sinHalfPhi * sinHalfLambda + std::cos(phi1) * std::cos(phi2) * sinHalfLambda * sinHalfLambda;
+        const double a = sinHalfPhi * sinHalfPhi + std::cos(phi1) * std::cos(phi2) * sinHalfLambda * sinHalfLambda;
 
         // min() guards against a = 1.0000000002 from rounding, which would make asin return NaN
         return 2.0 * kEarthRadiusMeters * std::asin(std::min(1.0, std::sqrt(a)));
