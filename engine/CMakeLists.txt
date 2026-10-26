@@ -31,7 +31,7 @@ FetchContent_MakeAvailable(googletest)
 set(CONDUIT_SAMPLES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../data/samples"
     CACHE PATH "Folder holding small test graphs")
 
-add_executable(conduit_tests tests/test_graph.cpp tests/test_router.cpp)
+add_executable(conduit_tests tests/test_graph.cpp tests/test_router.cpp tests/test_geo.cpp tests/test_astar.cpp)
 target_link_libraries(conduit_tests PRIVATE conduit_engine GTest::gtest_main)
 target_compile_options(conduit_tests PRIVATE -Wall -Wextra)
 target_compile_definitions(conduit_tests PRIVATE
