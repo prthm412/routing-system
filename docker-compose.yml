@@ -1,4 +1,13 @@
 services:
+  pipeline:
+    build:
+      context: ./data-pipeline
+      dockerfile: Dockerfile.dev
+    image: conduit-pipeline-dev
+    working_dir: /app
+    volumes:
+      - ./data-pipeline:/app
+      - ./data:/data
   engine:
     build:
       context: ./engine
@@ -7,6 +16,7 @@ services:
     working_dir: /workspace
     volumes:
       - ./engine:/workspace
+      - ./data:/data
       - engine-build:/build
     command: bash
 
