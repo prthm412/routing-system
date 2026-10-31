@@ -14,6 +14,7 @@ add_library(conduit_engine STATIC
 )
 target_include_directories(conduit_engine PUBLIC include)
 target_compile_options(conduit_engine PRIVATE -Wall -Wextra)
+set_target_properties(conduit_engine PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 # Phase 0 smoke test, kept for now.
 add_executable(conduit_smoke_test src/main.cpp)
@@ -45,3 +46,10 @@ target_compile_options(conduit_tests PRIVATE -Wall -Wextra)
 target_compile_definitions(conduit_tests PRIVATE
     CONDUIT_SAMPLES_DIR="${CONDUIT_SAMPLES_DIR}"
     CONDUIT_PROCESSED_DIR="${CONDUIT_PROCESSED_DIR}")
+
+option(CONDUIT_BUILD_PYTHON "Build the Python extension module" OFF)
+if(CONDUIT_BUILD_PYTHON)
+    find_package(pybind11 CONFIG REQUIRED)
+    pybind11_add_module(conduit_core bindings/python_bindings.cpp)
+    target_link_libraries(conduit_core PRIVATE conduit_engine)
+endif()
