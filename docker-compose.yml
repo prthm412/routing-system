@@ -19,6 +19,19 @@ services:
       - ./data:/data
       - engine-build:/build
     command: bash
+  service:
+    build:
+      context: ./service
+      dockerfile: Dockerfile.dev
+    image: conduit-service-dev
+    working_dir: /app
+    volumes:
+      - ./service:/app
+      - ./engine:/engine
+      - ./data:/data
+      - service-build:/build-py
+    command: bash
 
 volumes:
   engine-build:
+  service-build:
