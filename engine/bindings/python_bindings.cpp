@@ -38,6 +38,10 @@ namespace conduit::bridge {
         std::size_t nodeCount() const { return graph_.nodeCount(); }
         std::size_t edgeCount() const { return graph_.edgeCount(); }
 
+        NodeId nearestNode(double lat, double lon) const {
+            return index_.nearest(lat, lon);
+        }
+
         private:
         // members are built top to bottom and destroyed bottom to top
         // so graph_ is built first and destroyed last
@@ -56,6 +60,9 @@ PYBIND11_MODULE(conduit_core, m) {
     py::class_<City>(m, "City")
         .def_property_readonly("node_count", &City::nodeCount)
         .def_property_readonly("edge_count", &City::edgeCount)
+        .def("nearest_node", &City::nearestNode, py::arg("lat"), py::arg("lon"),
+            "Id of the road node closest to (lat, lon). Always returns a "
+            "node, however far away.")
         .def("__repr__", [](const City& city) {
             return "<City nodes=" + std::to_string(city.nodeCount()) + " edges=" + std::to_string(city.edgeCount()) + ">";
         });
