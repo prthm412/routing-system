@@ -8,6 +8,7 @@ services:
     volumes:
       - ./data-pipeline:/app
       - ./data:/data
+    command: bash
   engine:
     build:
       context: ./engine
@@ -31,7 +32,20 @@ services:
       - ./data:/data
       - service-build:/build-py
     command: bash
+  db:
+    image: postgis/postgis:16-3.4
+    env_file:
+      - path: .env
+        required: false
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
 volumes:
   engine-build:
   service-build:
+  db-data:
