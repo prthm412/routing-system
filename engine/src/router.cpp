@@ -1,5 +1,3 @@
-#include "../include/router.hpp";
-
 #include <algorithm>
 #include <functional>
 #include <limits>
@@ -8,7 +6,8 @@
 #include <string>
 #include <utility>
 
-#include "../include/geo.hpp";
+#include "../include/geo.hpp"
+#include "../include/router.hpp"
 
 namespace conduit {
 
