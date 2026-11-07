@@ -13,6 +13,8 @@ class Settings(BaseSettings):
     graph_path: str = "/data/processed/nyc.graph"
     # measured on real graph: land spots snapped within 74-218m
     max_snap_distance_m: float = 300.0
+    fleet_size: int = 5
+    fleet_seed: int = 42
 
     def database_url(self, database: str | None = None) -> URL:
         # URL.create escapes special characters in password
