@@ -6,8 +6,11 @@ import pytest
 from alembic import command
 from alembic.config import Config
 from sqlalchemy import create_engine, text
+from fastapi.testclient import TestClient
 
 from app.config import Settings
+from app.core.engine_bridge import load_city
+from app.main import create_app
 
 SERVICE_DIR = Path(__file__).resolve().parents[2]
 
@@ -74,3 +77,16 @@ def clean_db(db_engine):
     with db_engine.begin() as conn:
         conn.execute(text("TRUNCATE routes, deliveries, vehicles"))
     return db_engine
+
+@pytest.fixture(scope="session")
+def city(settings):
+    return load_city(settings.graph_path)
+
+
+@pytest.fixture
+def client(settings, clean_db):
+    """The real app, pointed at the temporary database (tables emptied first)."""
+    assert clean_db.url.database.startswith("conduit_test_")
+    test_settings = settings.model_copy(update={"postgres_db": clean_db.url.database})
+    with TestClient(create_app(test_settings)) as c:
+        yield c

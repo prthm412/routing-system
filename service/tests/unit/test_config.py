@@ -5,7 +5,7 @@ from app.config import Settings
 
 ENV_NAMES = [
     "POSTGRES_USER", "POSTGRES_PASSWORD", "POSTGRES_DB", "POSTGRES_HOST",
-    "POSTGRES_PORT", "GRAPH_PATH", "MAX_SNAP_DISTANCE_M",
+    "POSTGRES_PORT", "GRAPH_PATH", "MAX_SNAP_DISTANCE_M", "FLEET_SIZE", "FLEET_SEED",
 ]
 
 
@@ -54,3 +54,7 @@ def test_defaults_for_graph_and_snap_limit(env):
 def test_snap_limit_can_be_overridden_by_env(env):
     env.setenv("MAX_SNAP_DISTANCE_M", "250")
     assert Settings().max_snap_distance_m == 250.0
+
+def test_fleet_defaults(env):
+    s = Settings()
+    assert (s.fleet_size, s.fleet_seed) == (5, 42)
