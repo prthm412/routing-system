@@ -6,10 +6,12 @@ import pytest
 from alembic import command
 from alembic.config import Config
 from sqlalchemy import create_engine, text
+from sqlalchemy.orm import Session
 from fastapi.testclient import TestClient
 
 from app.config import Settings
 from app.core.engine_bridge import load_city
+from app.models import Vehicle
 from app.main import create_app
 
 SERVICE_DIR = Path(__file__).resolve().parents[2]
@@ -34,7 +36,7 @@ def temporary_database(settings: Settings):
 
 @pytest.fixture(scope="session")
 def settings():
-    return Settings(graph_path="/data/samples/tiny.graph")
+    return Settings(graph_path="/data/samples/chain.graph")
 
 
 @pytest.fixture(scope="session")
@@ -90,3 +92,16 @@ def client(settings, clean_db):
     test_settings = settings.model_copy(update={"postgres_db": clean_db.url.database})
     with TestClient(create_app(test_settings)) as c:
         yield c
+
+
+@pytest.fixture
+def place_vehicle(clean_db, city):
+    """Put a vehicle on a graph node and return its id."""
+    def make(node, status="idle"):
+        lat, lon = city.coordinates([node])[0]
+        with Session(clean_db) as s, s.begin():
+            v = Vehicle(current_lat=lat, current_lon=lon, status=status)
+            s.add(v)
+            s.flush()
+            return v.id
+    return make
