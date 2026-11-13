@@ -2,7 +2,7 @@
 #pragma once
 
 #include <vector>
-#include "graph.hpp";
+#include "graph.hpp"
 
 namespace conduit {
     struct Path {

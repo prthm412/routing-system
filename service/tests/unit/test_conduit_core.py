@@ -240,3 +240,103 @@ def test_real_graph_routes_are_walkable_and_not_shorter_than_straight_line():
         assert route.distance_m == pytest.approx(walked, abs=1e-6)
         # 1e-4 slack in case this Earth radius differs a little from the engine's constant.
         assert route.distance_m >= _straight_line_m(coords[src], coords[dst]) * (1 - 1e-4)
+
+def _haversine_m(lat1, lon1, lat2, lon2):
+    # same formula and Earth radius as engine/include/geo.hpp
+    r = 6371000.0
+    p1, p2 = math.radians(lat1), math.radians(lat2)
+    dp = math.radians(lat2 - lat1)
+    dl = math.radians(lon2 - lon1)
+    a = math.sin(dp / 2) ** 2 + math.cos(p1) * math.cos(p2) * math.sin(dl / 2) ** 2
+    return 2 * r * math.asin(min(1.0, math.sqrt(a)))
+
+
+def test_snap_agrees_with_nearest_node():
+    city = conduit_core.load_city(f"{SAMPLES}/tiny.graph")
+    lat0, lon0 = city.coordinates([3])[0]
+    rng = random.Random(7)
+    for _ in range(50):
+        lat = lat0 + rng.uniform(-0.002, 0.002)
+        lon = lon0 + rng.uniform(-0.002, 0.002)
+        assert city.snap(lat, lon).node == city.nearest_node(lat, lon)
+
+
+def test_coordinates_round_trip_through_snap():
+    city = conduit_core.load_city(f"{SAMPLES}/tiny.graph")
+    coords = city.coordinates(list(range(city.node_count)))
+    for node_id, (lat, lon) in enumerate(coords):
+        s = city.snap(lat, lon)
+        assert s.node == node_id
+        assert s.distance_m == pytest.approx(0.0, abs=1e-6)
+
+
+def test_snap_distance_matches_python_haversine():
+    city = conduit_core.load_city(f"{SAMPLES}/tiny.graph")
+    lat0, lon0 = city.coordinates([0])[0]
+    lat, lon = lat0 + 0.0004, lon0 + 0.0003
+    s = city.snap(lat, lon)
+    nlat, nlon = city.coordinates([s.node])[0]
+    assert s.distance_m > 0
+    assert s.distance_m == pytest.approx(_haversine_m(lat, lon, nlat, nlon), rel=1e-9)
+
+
+def test_snap_far_point_still_returns_a_node():
+    city = conduit_core.load_city(f"{SAMPLES}/tiny.graph")
+    s = city.snap(0.0, 0.0)
+    assert 0 <= s.node < city.node_count
+    assert s.distance_m > 1_000_000
+
+
+@pytest.mark.parametrize("lat, lon", [(float("nan"), -74.0), (40.7, float("inf")), (91.0, -74.0)])
+def test_snap_rejects_bad_coordinates(lat, lon):
+    city = conduit_core.load_city(f"{SAMPLES}/tiny.graph")
+    with pytest.raises(ValueError):
+        city.snap(lat, lon)
+
+
+def test_coordinates_keep_order_and_duplicates():
+    city = conduit_core.load_city(f"{SAMPLES}/tiny.graph")
+    a = city.coordinates([2])[0]
+    b = city.coordinates([0])[0]
+    assert city.coordinates([2, 0, 2]) == [a, b, a]
+
+
+def test_coordinates_empty_list():
+    city = conduit_core.load_city(f"{SAMPLES}/tiny.graph")
+    assert city.coordinates([]) == []
+
+
+def test_coordinates_unknown_id_raises_index_error():
+    city = conduit_core.load_city(f"{SAMPLES}/tiny.graph")
+    with pytest.raises(IndexError):
+        city.coordinates([city.node_count])
+    with pytest.raises(IndexError):
+        city.coordinates([0, 1, city.node_count])
+
+
+@pytest.mark.parametrize("bad", [-1, 1.5])
+def test_coordinates_rejects_negative_and_non_integer_ids(bad):
+    city = conduit_core.load_city(f"{SAMPLES}/tiny.graph")
+    with pytest.raises(TypeError):
+        city.coordinates([0, bad])
+
+
+def test_snap_result_outlives_the_city():
+    city = conduit_core.load_city(f"{SAMPLES}/tiny.graph")
+    s = city.snap(40.7, -74.0)
+    node, distance = s.node, s.distance_m
+    del city
+    gc.collect()
+    assert (s.node, s.distance_m) == (node, distance)
+
+
+NYC_GRAPH = Path("/data/processed/nyc.graph")
+
+
+@pytest.mark.skipif(not NYC_GRAPH.exists(), reason="no real graph in /data/processed")
+def test_real_graph_nodes_snap_to_themselves():
+    city = conduit_core.load_city(str(NYC_GRAPH))
+    rng = random.Random(42)
+    ids = [rng.randrange(city.node_count) for _ in range(200)]
+    for lat, lon in city.coordinates(ids):
+        assert city.snap(lat, lon).distance_m == pytest.approx(0.0, abs=1e-6)
