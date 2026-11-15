@@ -1,7 +1,7 @@
 import uuid
 from enum import StrEnum
 
-from sqlalchemy import String
+from sqlalchemy import String, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base
@@ -18,3 +18,4 @@ class Vehicle(Base):
     current_lat: Mapped[float]
     current_lon: Mapped[float]
     status: Mapped[str] = mapped_column(String(16), server_default=VehicleStatus.IDLE.value)
+    leg_progress_m: Mapped[float] = mapped_column(server_default=text("0"))
