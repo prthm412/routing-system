@@ -24,6 +24,7 @@ def test_vehicle_defaults_come_from_the_database(clean_db):
         s.flush()
         s.refresh(v)
         assert v.status == "idle"
+        assert v.leg_progress_m == 0.0
         assert isinstance(v.id, uuid.UUID)
 
 

@@ -12,6 +12,10 @@ TABLES_SQL = (
 )
 EXTENSIONS_SQL = "SELECT extname FROM pg_extension"
 
+VEHICLE_COLUMNS_SQL = (
+    "SELECT column_name FROM information_schema.columns WHERE table_name = 'vehicles'"
+)
+
 
 def _names(url, sql):
     engine = create_engine(url)
@@ -140,3 +144,33 @@ def test_upgrade_downgrade_upgrade_on_an_empty_database(empty_db_url, alembic_cf
     assert _names(empty_db_url, TABLES_SQL) == set()
     command.upgrade(cfg, "head")
     assert _names(empty_db_url, TABLES_SQL) == {"vehicles", "deliveries", "routes"}
+
+
+def test_new_vehicle_gets_zero_leg_progress(clean_db):
+    with clean_db.begin() as conn:
+        vid = _vehicle(conn)
+        progress = conn.execute(
+            text("SELECT leg_progress_m FROM vehicles WHERE id = :id"), {"id": vid}
+        ).scalar()
+    assert progress == 0.0
+
+
+def test_negative_leg_progress_is_rejected(clean_db):
+    with pytest.raises(IntegrityError) as exc:
+        with clean_db.begin() as conn:
+            conn.execute(
+                text("INSERT INTO vehicles (id, current_lat, current_lon, status, leg_progress_m) "
+                     "VALUES (:id, 40.7, -74.0, 'idle', -1.0)"),
+                {"id": uuid.uuid4()},
+            )
+    assert "ck_vehicles_leg_progress_m" in str(exc.value)
+
+
+def test_downgrade_to_0001_drops_the_column_and_upgrade_restores_it(empty_db_url, alembic_cfg):
+    cfg = alembic_cfg(empty_db_url)
+    command.upgrade(cfg, "head")
+    assert "leg_progress_m" in _names(empty_db_url, VEHICLE_COLUMNS_SQL)
+    command.downgrade(cfg, "0001")
+    assert "leg_progress_m" not in _names(empty_db_url, VEHICLE_COLUMNS_SQL)
+    command.upgrade(cfg, "head")
+    assert "leg_progress_m" in _names(empty_db_url, VEHICLE_COLUMNS_SQL)
