@@ -6,6 +6,7 @@ from app.config import Settings
 ENV_NAMES = [
     "POSTGRES_USER", "POSTGRES_PASSWORD", "POSTGRES_DB", "POSTGRES_HOST",
     "POSTGRES_PORT", "GRAPH_PATH", "MAX_SNAP_DISTANCE_M", "FLEET_SIZE", "FLEET_SEED",
+    "GENERATOR_SEED", "GENERATOR_MIN_INTERVAL_S", "GENERATOR_MAX_INTERVAL_S",
 ]
 
 
@@ -58,3 +59,7 @@ def test_snap_limit_can_be_overridden_by_env(env):
 def test_fleet_defaults(env):
     s = Settings()
     assert (s.fleet_size, s.fleet_seed) == (5, 42)
+
+def test_generator_defaults(env):
+    s = Settings()
+    assert (s.generator_seed, s.generator_min_interval_s, s.generator_max_interval_s) == (42, 20.0, 60.0)
