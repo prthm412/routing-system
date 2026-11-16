@@ -2,6 +2,7 @@ from functools import lru_cache
 
 from pydantic_settings import BaseSettings
 from sqlalchemy.engine import URL
+from pydantic import Field
 
 class Settings(BaseSettings):
     postgres_user: str
@@ -20,6 +21,11 @@ class Settings(BaseSettings):
     generator_seed: int = 42
     generator_min_interval_s: float = 20.0
     generator_max_interval_s: float = 60.0
+
+    # Simulation. The speed is a simulation assumption, not observed traffic.
+    simulation_enabled: bool = False
+    vehicle_speed_mps: float = Field(default=12.0, gt=0)
+    sim_tick_s: float = Field(default=1.0, gt=0)
 
     def database_url(self, database: str | None = None) -> URL:
         # URL.create escapes special characters in password
