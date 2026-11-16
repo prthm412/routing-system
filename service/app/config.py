@@ -16,6 +16,11 @@ class Settings(BaseSettings):
     fleet_size: int = 5
     fleet_seed: int = 42
 
+    # Synthetic delivery requests. Placeholders until tuned by watching the cars.
+    generator_seed: int = 42
+    generator_min_interval_s: float = 20.0
+    generator_max_interval_s: float = 60.0
+
     def database_url(self, database: str | None = None) -> URL:
         # URL.create escapes special characters in password
         return URL.create(
