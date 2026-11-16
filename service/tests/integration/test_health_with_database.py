@@ -5,7 +5,7 @@ from app.main import create_app
 
 
 def test_health_ok_when_database_is_up():
-    settings = Settings(graph_path="/data/samples/tiny.graph")
+    settings = Settings(graph_path="/data/samples/tiny.graph", simulation_enabled=False)
     with TestClient(create_app(settings)) as client:
         res = client.get("/health")
     assert res.status_code == 200

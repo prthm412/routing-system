@@ -36,7 +36,7 @@ def temporary_database(settings: Settings):
 
 @pytest.fixture(scope="session")
 def settings():
-    return Settings(graph_path="/data/samples/chain.graph")
+    return Settings(graph_path="/data/samples/chain.graph", simulation_enabled=False)
 
 
 @pytest.fixture(scope="session")

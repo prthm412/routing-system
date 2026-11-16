@@ -10,6 +10,7 @@ def _settings(**overrides):
         postgres_user="u", postgres_password="p", postgres_db="d",
         postgres_host="127.0.0.1", postgres_port=1,  # nothing listens here
         graph_path="/data/samples/tiny.graph",
+        simulation_enabled=False,
     )
     values.update(overrides)
     return Settings(**values)

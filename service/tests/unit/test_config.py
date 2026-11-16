@@ -7,6 +7,7 @@ ENV_NAMES = [
     "POSTGRES_USER", "POSTGRES_PASSWORD", "POSTGRES_DB", "POSTGRES_HOST",
     "POSTGRES_PORT", "GRAPH_PATH", "MAX_SNAP_DISTANCE_M", "FLEET_SIZE", "FLEET_SEED",
     "GENERATOR_SEED", "GENERATOR_MIN_INTERVAL_S", "GENERATOR_MAX_INTERVAL_S",
+    "SIMULATION_ENABLED", "VEHICLE_SPEED_MPS", "SIM_TICK_S",
 ]
 
 
@@ -63,3 +64,28 @@ def test_fleet_defaults(env):
 def test_generator_defaults(env):
     s = Settings()
     assert (s.generator_seed, s.generator_min_interval_s, s.generator_max_interval_s) == (42, 20.0, 60.0)
+
+def test_simulation_defaults(env):
+    s = Settings()
+    assert s.simulation_enabled is False
+    assert (s.vehicle_speed_mps, s.sim_tick_s) == (12.0, 1.0)
+
+
+def test_simulation_can_be_enabled_by_env(env):
+    env.setenv("SIMULATION_ENABLED", "true")
+    assert Settings().simulation_enabled is True
+
+
+def test_an_explicit_value_beats_the_environment(env):
+    env.setenv("SIMULATION_ENABLED", "true")
+    assert Settings(simulation_enabled=False).simulation_enabled is False
+
+
+@pytest.mark.parametrize(
+    "name, value",
+    [("VEHICLE_SPEED_MPS", "0"), ("VEHICLE_SPEED_MPS", "-3"), ("SIM_TICK_S", "0"), ("SIM_TICK_S", "-1")],
+)
+def test_non_positive_speed_or_tick_is_an_error(env, name, value):
+    env.setenv(name, value)
+    with pytest.raises(ValidationError):
+        Settings()
